@@ -31,7 +31,7 @@ jobs:
       - name: Sync files to root
         if: success()
         run: |
-          rsync -av --exclude='.git' --exclude='target-repo' --exclude='Backend' --exclude='Web' --exclude='Mobile' --exclude='AI' --exclude='AR' ./ target-repo/
+          rsync -av --exclude='.git' --exclude='target-repo' --exclude='Backend' --exclude='Web' --exclude='Mobile' --exclude='AI' --exclude='AR' --exclude='.github' ./ target-repo/
 
       - name: Commit and push changes
         if: success()
