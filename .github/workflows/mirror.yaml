@@ -1,0 +1,89 @@
+name: Mirror to Epitech Repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Git credentials
+        run: |
+          git config --global --add safe.directory '*'
+          git config --global user.name "GitHub Action CI Peakrando"
+          git config --global user.email "action@github.com"
+
+
+      - name: Checkout source repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Clone target repository
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.MIRROR_DEPLOY_KEY }}
+        run: |
+          git clone https://x-access-token:${GH_TOKEN}@github.com/EpitechPGE45-2025/G-EIP-700-PAR-7-1-eip-149 target-repo
+
+      - name: Sync files to root
+        if: success()
+        run: |
+          rsync -av --exclude='.git' --exclude='target-repo' --exclude='Backend' --exclude='Web' --exclude='Mobile' --exclude='AI' --exclude='AR' ./ target-repo/
+
+      - name: Commit and push changes
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.MIRROR_DEPLOY_KEY }}
+        working-directory: target-repo
+        run: |
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/EpitechPGE45-2025/G-EIP-700-PAR-7-1-eip-149
+          git add .
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "Mirror update from ${{ github.repository }} - $(date +'%Y-%m-%d %H:%M:%S')
+            
+            Commit: ${{ github.sha }}
+            Message: ${{ github.event.head_commit.message }}
+            Author: ${{ github.event.head_commit.author.name }}"
+            git push origin main
+          )
+
+      - name: Notify on failure with user mention
+        if: failure()
+        run: |
+          AUTHOR="${{ github.event.head_commit.author.email }}"
+          case "$AUTHOR" in
+            "robin.glaude@epitech.eu")
+              MENTION="<@303084563259719680>"
+              ;;
+            "maixent.cerda@epitech.eu")
+              MENTION="<@266227514584596491>"
+              ;;
+            "thibaut1.tavernier@epitech.eu")
+              MENTION="<@471114401315946516>"
+              ;;
+            "t.calogheris@gmail.com")
+              MENTION="<@332170987145527298>"
+              ;;
+            "kenzo.escuret@epitech.eu")
+              MENTION="<@406203309259489281>"
+              ;;
+            "joan.ruiz@epitech.eu")
+              MENTION="<@410485176393793547>"
+              ;;
+            *)
+              MENTION=""
+              ;;
+          esac
+          MESSAGE="🚨 CI/CD pipeline failed sur \`${{ github.repository }}\` (commit: ${{ github.sha }})\n - message: '\`${{ github.event.head_commit.message }}\`'"
+          if [[ -n "$MENTION" ]]; then
+            MESSAGE="$MESSAGE\nAuteur : $MENTION"
+          else
+            MESSAGE="$MESSAGE\nAuteur : $AUTHOR"
+          fi
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"content\": \"$MESSAGE\"}" \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
