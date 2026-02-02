@@ -35,34 +35,9 @@ jobs:
           
           # Échapper les caractères spéciaux pour JSON
           COMMIT_MESSAGE_ESCAPED=$(echo "$COMMIT_MESSAGE" | jq -Rs .)
-          
-          # Déterminer la couleur selon le repository
-          case "$REPO_NAME" in
-            *Mobile*|*mobile*)
-              COLOR=10181046  # Violet
-              ;;
-            *CI-CD*|*ci-cd*|*CICD*|*cicd*)
-              COLOR=3066993  # Vert d'eau/Cyan
-              ;;
-            *Web*|*web*)
-              COLOR=5793266  # Bleu clair
-              ;;
-            *Resources*|*resources*)
-              COLOR=9807270  # Rose/Magenta
-              ;;
-            *Backend*|*backend*)
-              COLOR=3447003  # Bleu royal
-              ;;
-            *AI*|*ai*)
-              COLOR=7506394  # Bleu-gris
-              ;;
-            *AR*|*ar*)
-              COLOR=8359053  # Vert forêt
-              ;;
-            *)
-              COLOR=5763719  # Gris par défaut
-              ;;
-          esac
+
+          # COLOR
+          COLOR=9807270
           
           # Créer le payload JSON pour Discord
           PAYLOAD=$(cat <<EOF
